@@ -1,3 +1,6 @@
+from scapy.all import *
+
+
 def tcpSYN(numOfPorts,order): # Arris
    if order==inOrder:
     for i in range(numOfPorts):
@@ -12,4 +15,3 @@ def tcpSYN(numOfPorts,order): # Arris
     #randomize range(numOfPorts)
     #same as above
 
-    
