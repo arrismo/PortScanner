@@ -62,6 +62,7 @@ def normalScan(ip, numOfPorts, order):
 
 
 def tcpSYN(ip, numOfPorts, order):
+    count = 0
     if order == "inOrder":
       print("Starting port scan")
       if numOfPorts == 65536:
@@ -71,19 +72,24 @@ def tcpSYN(ip, numOfPorts, order):
       print("PORT\tSTATE\tSERVICE")
 
       for i in range(numOfPorts):
+        count += 1
+        print(count)
+
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind(('', i))
         SYNPacket = IP(dst=ip)/TCP(dport= i, flags="S")
-        SYNresponse = sr1(SYNPacket,verbose=0) # will output SA or RA  SA = SYnack
-        flag = SYNresponse.sprintf('%TCP.flags%')
-        if flag == 'SA':
-          #print("FOUND SYNACK")
-          # create RST packet
-          RSTpacket = IP(dst=ip)/TCP(dport= i , flags="R")
-          send(RSTpacket, verbose=False)
+        SYNresponse = sr1(SYNPacket,verbose=False,timeout=2) # will output SA or RA  SA = SYnack
+        if SYNresponse is None:
+            print("broken")
+            break
         else:
-            sys.exit()
-
+            print("working")
+            flag = SYNresponse.sprintf('%TCP.flags%')
+            if flag == 'SA':
+              print("FOUND SYNACK")
+              # create RST packet
+              RSTpacket = IP(dst=ip)/TCP(dport= i , flags="R")
+              send(RSTpacket,verbose=False, timeout=2)
     else:
         print("Starting port scan")
         if numOfPorts == 65536:
@@ -94,32 +100,24 @@ def tcpSYN(ip, numOfPorts, order):
 
         r = list(range(numOfPorts))
         random.shuffle(r)
+
         for i in r:
           server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
           server.bind(('', i))
+          socket.setdefaulttimeout(1)
           SYNPacket = IP(dst=ip)/TCP(dport= i, flags="S")
-          SYNresponse = sr1(SYNPacket,verbose=0) # will output SA or RA  SA = SYnack
-          flag = SYNresponse.sprintf('%TCP.flags%')
-          if flag == 'SA':
-            #print("FOUND SYNACK")
-            # create RST packet
-            RSTpacket = IP(dst=ip)/TCP(dport= i , flags="R")
-            send(RSTpacket, verbose=False)
+          SYNresponse = sr1(SYNPacket,verbose=0,timeout=2)
+          if SYNresponse is None:
+              print("broken")
+              break
           else:
-              sys.exit()
-
-
-      # state = "Open"
-      # r = list(range(numOfPorts))
-      # for i in range(numOfPorts):
-      #   server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      #   server.bind(('', i))  # socket is reachable by any machine
-      #   SYNPacket = IP(dst=ip)/TCP(dport= i, flags="S")
-      #   SYNresponse = sr1(SYNPacket,verbose=0)
-      #   service = socket.getservbyport(portNum, "tcp")
-      #   print(portNum)
-      #   print(state)
-      #   print(service)
+              print("working")
+              flag = SYNresponse.sprintf('%TCP.flags%')
+              if flag == 'SA':
+                print("FOUND SYNACK")
+                # create RST packet
+                RSTpacket = IP(dst=ip)/TCP(dport= i , flags="R")
+                send(RSTpacket,verbose=False, timeout=2)
 
 
 def tcpFIN(ip, numOfPorts, order):
@@ -133,9 +131,10 @@ def tcpFIN(ip, numOfPorts, order):
     for i in range(numOfPorts):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind(('', i))
+        socket.setdefaulttimeout(1)
         FINPacket = IP(dst=ip)/TCP(dport= i , flags="F")
         FINresponse = sr1(FINPacket,verbose=0)
-        if FINresponse == None:
+        if FINresponse is None:
             #print("Port is open")
             send(FINPacket,verbose=False)
         else:
@@ -147,7 +146,7 @@ def printTable(ip, mode, numOfPorts, order):
   # numOfPorts
   if mode == "normal":
     normalScan(ip, numOfPorts, order)
-  elif mode == "syn":
+  elif mode == "SYN":
     tcpSYN(ip, numOfPorts, order)
   else:
     tcpFIN(ip, numOfPorts, order)
@@ -170,8 +169,8 @@ def scanIP():
   # 127.0.0.1if checkIP(IP):
   ip="131.229.72.13"
   mode="SYN"
-  order="dssdfds"
-  numOfPorts=1
+  order="inOrder"
+  numOfPorts= 65536
 
   start=time.time()
 
