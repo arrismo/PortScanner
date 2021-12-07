@@ -1,23 +1,30 @@
 import time
-import scapy
 import socket
+import random
+
 def normalScan(ip, numOfPorts, order):
   if order == "inOrder":
     print("Starting port scan")
     if numOfPorts==65536:
-          print("Interesting ports on:"+ip)
+          print("All ports on:"+ip)
     else:
-      print("All ports on: "+ip)
+      print("Interesting ports on: "+ip)
     print("PORT\tSTATE\tSERVICE")
-    for port in range(1, numOfPorts):
+    
+    for port in range(numOfPorts):
       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      s.bind(('', port))
       socket.setdefaulttimeout(1)
       result = s.connect_ex((ip, port))
       if result == 0:
-        portNum = sock.getsockname()
         state = "Open"
-        service = socket.getservbyport(portNum, tcp)
-        print(portNum+"\t"+state+"\t"+service)
+        
+        portNum = s.getsockname()[1]
+
+        service = socket.getservbyport(portNum, "tcp")
+        print(portNum)
+        print(state)
+        print(service)
 
       # create socket and get port #, state, and service
       # List of interesting ports
@@ -25,22 +32,27 @@ def normalScan(ip, numOfPorts, order):
   else:
     print("Starting port scan")
     if numOfPorts==65536:
-          print("Interesting ports on:"+ip)
+          print("All ports on:"+ip)
     else:
-      print("All ports on: "+ip)
+      print("Interesting ports on: "+ip)
     print("PORT\tSTATE\tSERVICE")
-    r = list(range(portNum))
+    r = list(range(numOfPorts))
     random.shuffle(r)
+    
     for port in r:
       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      s.bind(('', port))
       socket.setdefaulttimeout(1)
       result = s.connect_ex((ip, port))
-      if numOfPorts == 65536:
-        if result == 0:
-          portNum = sock.getsockname()
-          state = "Open"
-          service = socket.getservbyport(portNum, tcp)
-          print(portNum+"\t"+state+"\t"+service)
+      if result == 0:
+        state = "Open"
+        
+        portNum = s.getsockname()[1]
+
+        service = socket.getservbyport(portNum, "tcp")
+        print(portNum)
+        print(state)
+        print(service)
     # randomize range(numOfPorts)
     # List of all ports
     # same as above
@@ -98,19 +110,20 @@ def checkIP(IP):
 
 def scanIP():
   #127.0.0.1if checkIP(IP):
-    ip=input("ip: ")
-    mode=input("mode: ")
-    order=input("order: ")
-    numOfPorts=100
+  ip="131.229.72.13"
+  mode="normal"
+  order="dssdfds"
+  numOfPorts=100
 
-    start=time.time()
+  start=time.time()
     
-    closedPorts=numOfPorts-len(get_open_ports(ip))
-    print("There are "+closedPorts+" closed ports.")
+  #closedPorts=numOfPorts-len(get_open_ports(ip))
+  #print("There are "+closedPorts+" closed ports.")
 
-    printTable(mode, numOfPorts,order)
-    end=time.time()
-    print("Finished scanning IP: "+ip+" in "+(end-start)+" seconds.")
+  printTable(ip, mode, numOfPorts,order)
+  end=time.time()
+
+  #print("Finished scanning IP: "+ip+" in "+(end-start)+" seconds.")
   
 
 def main():
