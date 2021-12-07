@@ -5,6 +5,9 @@ import os
 from scapy.all import *
 
 
+# check looping in sending packets
+# check if open before sending packets
+
 def normalScan(ip, numOfPorts, order):
   if order == "inOrder":
     print("Starting port scan")
@@ -22,8 +25,7 @@ def normalScan(ip, numOfPorts, order):
       if result == 0:
         state = "Open"
 
-        portNum = s.getsockname()[1]
-
+        portNum = s.getsockname()[1] # getting port number
         service = socket.getservbyport(portNum, "tcp")
         print(portNum)
         print(state)
@@ -61,8 +63,8 @@ def normalScan(ip, numOfPorts, order):
     # same as above
 
 
+
 def tcpSYN(ip, numOfPorts, order):
-    count = 0
     if order == "inOrder":
       print("Starting port scan")
       if numOfPorts == 65536:
@@ -70,15 +72,21 @@ def tcpSYN(ip, numOfPorts, order):
       else:
         print("Interesting ports on: "+ip)
       print("PORT\tSTATE\tSERVICE")
-
-      for i in range(numOfPorts):
-        count += 1
-        print(count)
-
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.bind(('', i))
+      list_sockets = []
+      for i in range(2000,10000):
+        print(i)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = s.connect_ex((ip, i))
+        s.close()
+        if result == 0:
+          state = "Open"
+          portNum = s.getsockname()[1] # getting port number
+          service = socket.getservbyport(portNum, "tcp")
+          print(portNum)
+          print(state)
+          print(service)
         SYNPacket = IP(dst=ip)/TCP(dport= i, flags="S")
-        SYNresponse = sr1(SYNPacket,verbose=False,timeout=2) # will output SA or RA  SA = SYnack
+        SYNresponse = sr1(SYNPacket,verbose=False) # will output SA or RA  SA = SYnack
         if SYNresponse is None:
             print("broken")
             break
@@ -89,7 +97,7 @@ def tcpSYN(ip, numOfPorts, order):
               print("FOUND SYNACK")
               # create RST packet
               RSTpacket = IP(dst=ip)/TCP(dport= i , flags="R")
-              send(RSTpacket,verbose=False, timeout=2)
+              send(RSTpacket,verbose=False,timeout = 2)
     else:
         print("Starting port scan")
         if numOfPorts == 65536:
@@ -103,8 +111,17 @@ def tcpSYN(ip, numOfPorts, order):
 
         for i in r:
           server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-          server.bind(('', i))
+          #server.bind(('', i))
           socket.setdefaulttimeout(1)
+          result = server.connect_ex((ip, i))
+          if result == 0:
+            state = "Open"
+
+            portNum = server.getsockname()[1] # getting port number
+            service = socket.getservbyport(portNum, "tcp")
+            print(portNum)
+            print(state)
+            print(service)
           SYNPacket = IP(dst=ip)/TCP(dport= i, flags="S")
           SYNresponse = sr1(SYNPacket,verbose=0,timeout=2)
           if SYNresponse is None:
@@ -132,6 +149,14 @@ def tcpFIN(ip, numOfPorts, order):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind(('', i))
         socket.setdefaulttimeout(1)
+        if result == 0:
+          state = "Open"
+
+          portNum = s.getsockname()[1] # getting port number
+          service = socket.getservbyport(portNum, "tcp")
+          print(portNum)
+          print(state)
+          print(service)
         FINPacket = IP(dst=ip)/TCP(dport= i , flags="F")
         FINresponse = sr1(FINPacket,verbose=0)
         if FINresponse is None:
@@ -167,10 +192,10 @@ def checkIP(IP):
 
 def scanIP():
   # 127.0.0.1if checkIP(IP):
-  ip="131.229.72.13"
+  ip='131.229.72.13'
   mode="SYN"
   order="inOrder"
-  numOfPorts= 65536
+  numOfPorts= 500
 
   start=time.time()
 
