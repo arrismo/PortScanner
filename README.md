@@ -5,7 +5,7 @@ Files included:
 port_scanner.py 
 
 How to run: 
-port_scanner.py -mode(normal/SYN/FIN) -order(inOrder/notInOrder) -numOfPorts(user designated number of ports to scan) 
+port_scanner.py -mode(normal/SYN/FIN) -order(order/random) -numOfPorts(user designated number of ports to scan) 
 
 
 
