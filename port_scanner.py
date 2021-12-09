@@ -64,6 +64,8 @@ def normalScan(ip, numOfPorts, order):
 
 
 
+
+
 def tcpSYN(ip, numOfPorts, order):
     if order == "inOrder":
       print("Starting port scan")
@@ -72,8 +74,7 @@ def tcpSYN(ip, numOfPorts, order):
       else:
         print("Interesting ports on: "+ip)
       print("PORT\tSTATE\tSERVICE")
-      list_sockets = []
-      for i in range(2000,10000):
+      for i in range(numOfPorts):
         print(i)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = s.connect_ex((ip, i))
@@ -85,19 +86,20 @@ def tcpSYN(ip, numOfPorts, order):
           print(portNum)
           print(state)
           print(service)
-        SYNPacket = IP(dst=ip)/TCP(dport= i, flags="S")
-        SYNresponse = sr1(SYNPacket,verbose=False) # will output SA or RA  SA = SYnack
-        if SYNresponse is None:
-            print("broken")
-            break
-        else:
-            print("working")
-            flag = SYNresponse.sprintf('%TCP.flags%')
-            if flag == 'SA':
-              print("FOUND SYNACK")
-              # create RST packet
-              RSTpacket = IP(dst=ip)/TCP(dport= i , flags="R")
-              send(RSTpacket,verbose=False,timeout = 2)
+        while True:
+            SYNPacket = IP(dst=ip)/TCP(dport= i, flags="S")
+            SYNresponse = sr1(SYNPacket,verbose=False) # will output SA or RA  SA = SYnack
+            if SYNresponse is None:
+                print("broken")
+                break
+            else:
+                print("working")
+                flag = SYNresponse.sprintf('%TCP.flags%')
+                if flag == 'SA':
+                  print("FOUND SYNACK")
+                  # create RST packet
+                  RSTpacket = IP(dst=ip)/TCP(dport= i , flags="R")
+                  send(RSTpacket,verbose=False,timeout = 2)
     else:
         print("Starting port scan")
         if numOfPorts == 65536:
